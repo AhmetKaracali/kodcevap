@@ -18,44 +18,40 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
-Route::get('/', 'KodcevapController@index');
-Route::get('/soru/{soruid}', 'apiController@getSoru');
-Route::post('/soru/{soruid}', 'CevapController@store');
-Route::get('/etiketler', 'EtiketController@index');
-Route::get('/etiketler/{etiket}', 'EtiketController@show');
-Route::get('/topluluklar', 'ToplulukController@index');
-Route::get('/topluluklar/{topluluk}','ToplulukController@show');
-Route::get('/uyeler','userController@showUsers');
-Route::get('/profil/{user}', 'UserController@showAbout');
-Route::get('/profil/{user}/sorular', 'UserController@showQuestions');
-Route::get('/profil/{user}/cevaplar', 'UserController@showAnswers');
-Route::get('/profil/{user}/cozumler', 'UserController@showSolutions');
-Route::get('/profil/{user}/takipci','UserController@showTakipci');
-Route::get('/profil/{user}/takip', 'UserController@showTakip');
-Route::post('/kaydol', 'Auth\RegisterController@register');
+Route::get('/', 'Api\ApiKodcevapController@index');
+Route::get('/soru/{soruid}', 'Api\ApiSoruController@getSoru');
+Route::post('/soru/{soruid}', 'Api\CevapController@store');
+Route::get('/etiketler', 'Api\ApiEtiketController@index');
+Route::get('/etiketler/{etiket}', 'Api\ApiEtiketController@show');
+Route::get('/topluluklar', 'Api\ApiToplulukController@index');
+Route::get('/topluluklar/{topluluk}','Api\ApiToplulukController@show');
+Route::get('/uyeler','Api\ApiUserController@showUsers');
+Route::get('/profil/{user}', 'Api\ApiUserController@showAbout');
+Route::get('/profil/{user}/sorular', 'Api\ApiUserController@showQuestions');
+Route::get('/profil/{user}/cevaplar', 'Api\ApiUserController@showAnswers');
+Route::get('/profil/{user}/cozumler', 'Api\ApiUserController@showSolutions');
+Route::get('/profil/{user}/takipci','Api\ApiUserController@showTakipci');
+Route::get('/profil/{user}/takip', 'Api\ApiUserController@showTakip');
+Route::post('/kaydol', 'Api\Auth\RegisterController@register');
 Route::get('/kaydol', function(){ return view('main.kaydol');});
-Route::post('/giris', 'Auth\LoginController@login');
+Route::post('/giris', 'Api\Auth\LoginController@login');
 Route::get('/giris', function(){ return view('main.giris'); });
-Route::get('/cikis','Auth\LoginController@logout');
-Route::get('/profil/{user}/duzenle', 'UserController@edit');
-Route::post('/profil/{user}/duzenle', 'UserController@update');
-Route::get('/profil/{user}/changepw', 'UserController@changepw');
-Route::post('/profil/{user}/changepw', 'UserController@updatepw');
-Route::get('/sor', 'SoruController@create');
-Route::post('/sor', 'SoruController@store');
-Route::post('/oyVer', 'SoruController@voted');
-Route::post('/oyVerYorum', 'CevapController@voted');
-Route::post('/cozumIsaretle', 'CevapController@cozumisaret');
-Route::get('/profil/{user}/aktivite','UserController@showActivity');
-Route::get('profil/{user}/puanlar', 'UserController@showPoints');
-Route::post('/takipet', 'UserFollowersController@follow');
-Route::post('/takipbirak', 'UserFollowersController@unfollow');
-Route::post('/followTopluluk', 'ToplulukController@follow');
-Route::post('/unfollowTopluluk', 'ToplulukController@unfollow');
-Route::get('/blog/{post}', 'BlogPostController@show');
-Route::get('/blog', 'BlogPostController@index');
-Route::get('/blog/kategori/{category}', 'BlogCategoryController@show');
-Route::post('/blog/{postid}', 'YorumController@store');
+Route::get('/cikis','Api\Auth\LoginController@logout');
+Route::get('/profil/{user}/duzenle', 'Api\UserController@edit');
+Route::post('/profil/{user}/duzenle', 'Api\UserController@update');
+Route::get('/profil/{user}/changepw', 'Api\UserController@changepw');
+Route::post('/profil/{user}/changepw', 'Api\UserController@updatepw');
+Route::get('/sor', 'Api\SoruController@create');
+Route::post('/sor', 'Api\SoruController@store');
+Route::post('/oyVer', 'Api\SoruController@voted');
+Route::post('/oyVerYorum', 'Api\CevapController@voted');
+Route::post('/cozumIsaretle', 'Api\CevapController@cozumisaret');
+Route::get('/profil/{user}/aktivite','Api\UserController@showActivity');
+Route::get('profil/{user}/puanlar', 'Api\UserController@showPoints');
+Route::post('/takipet', 'Api\UserFollowersController@follow');
+Route::post('/takipbirak', 'Api\UserFollowersController@unfollow');
+Route::post('/followTopluluk', 'Api\ToplulukController@follow');
+Route::post('/unfollowTopluluk', 'Api\ToplulukController@unfollow');
 
 Route::get('/admin', function () {
     return view('admin.home');
@@ -88,6 +84,5 @@ Route::get('iletisim', function (){
     return view('main.iletisim');
 });
 
-Route::get('mesajgonder', 'telegramController@sendMessage');
 
 Auth::routes();

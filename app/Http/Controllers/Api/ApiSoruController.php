@@ -1,7 +1,8 @@
 <?php
 
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Controller;
 use App\cevap;
 use App\Etiket;
 use App\Soru;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class apiController
+class apiSoruController
 {
 
     // SORU FONKSİYONLARI

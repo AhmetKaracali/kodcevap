@@ -5,9 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="67b85145-d7b2-4362-b222-e140e53f8514" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/apiController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/apiController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/apiController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Api/apiController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,11 +141,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app/Http/Controllers/Api" />
       <recent name="$PROJECT_DIR$/resources/views/main" />
       <recent name="$PROJECT_DIR$/resources/views/profile" />
       <recent name="$PROJECT_DIR$/resources/views/blog" />
       <recent name="$PROJECT_DIR$/resources/views/Layouts" />
-      <recent name="$PROJECT_DIR$/resources/views" />
     </key>
   </component>
   <component name="RunManager">
@@ -186,7 +186,7 @@
       <workItem from="1607542473392" duration="349000" />
       <workItem from="1607544001376" duration="365000" />
       <workItem from="1607912706602" duration="32000" />
-      <workItem from="1609092868246" duration="1917000" />
+      <workItem from="1609092868246" duration="6973000" />
     </task>
     <servers />
   </component>
@@ -202,10 +202,11 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="538" y="380" key="NewPhpFileDialog/0.0.1440.900@0.0.1440.900" timestamp="1609095334594" />
-    <state x="221" y="89" key="SettingsEditor" timestamp="1609096835472">
-      <screen x="0" y="0" width="1440" height="900" />
+    <state x="295" y="107" key="SettingsEditor" timestamp="1609274206846">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="221" y="89" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1609096835472" />
+    <state x="295" y="107" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1609274206846" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
