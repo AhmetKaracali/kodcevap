@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Kodcevap;
 use App\Soru;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class KodcevapController extends Controller
 {
@@ -14,6 +15,15 @@ class KodcevapController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
 
+
+    public function clearRoute()
+    {
+        Artisan::call('route:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+
+
+    }
 
     public function index()
     {

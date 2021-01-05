@@ -55,7 +55,7 @@ class ApiCevapController extends Controller
         $puan->date = date_create();
         $puan->save();
 
-        return response()-json('Success',200);
+        return response()->json('Success',200);
 
 
     }

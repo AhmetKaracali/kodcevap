@@ -60,6 +60,23 @@ class RegisterController extends Controller
     return redirect()->back()->with('message','Kayıt başarılı.');
     }
 
+    public function registerWithApi(Request $request)
+    {
+
+        $request->validate(
+            [
+                'isim' => ['required', 'string', 'max:255'],
+                'username' => ['required', 'string', 'min:4', 'max:10', 'unique:users'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'pass1' => ['required', 'confirmed', 'string', 'min:8'],
+                'birthdate' => ['required', 'date'],
+            ]
+        );
+
+        $user = $this->create($request->all());
+        return response()->json('Kayit Basarili.',200);
+    }
+
     /**
      * Get a validator for an incoming registration request.
      *

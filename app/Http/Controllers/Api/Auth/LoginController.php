@@ -57,6 +57,22 @@ class LoginController extends Controller
         }
     }
 
+    public function loginAPI(Request $request)
+    {
+        $keys = $request->only('username','password');
+        $user = User::all()->where('username', '=',$keys['username'])->first();
+
+        if(!Auth::check()) {
+            if (Auth::attempt($keys)) {
+                session([ 'user' =>  $user]);
+                return response()->json('Success',200);
+
+            } else {
+                return response()->json('Error',404);
+            }
+        }
+    }
+
     public function logout(Request $request)
     {
             if(Auth::check())

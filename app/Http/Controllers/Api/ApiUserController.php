@@ -21,14 +21,40 @@ class ApiUserController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return \Illuminate\Http\JsonResponse
      */
 
-
-    public function index()
+    public function registerWithApi(Request $request)
     {
 
+           User::create([
+            'name' => $request->get('isim'),
+            'username' => $request->get('username'),
+            'email' => $request->get('email'),
+            'password' => Hash::make($request->get('pass1')),
+            'birthdate' => $request->get('birthdate'),
+            'regDate' => date(now()),
+            'about' => '',
+            'email_verified_at' => null,
+        ]);
+        return response()->json('Kayit Basarili.',200);
+    }
 
+
+    public function loginAPI(Request $request)
+    {
+        $keys = $request->only('username','password');
+        $user = User::all()->where('username', '=',$keys['username'])->first();
+
+        if(!Auth::check()) {
+            if (Auth::attempt($keys)) {
+                session([ 'user' =>  $user]);
+                return response()->json('Success',200);
+
+            } else {
+                return response()->json('Error',404);
+            }
+        }
     }
 
     public function showAbout(User $user)
@@ -148,7 +174,7 @@ class ApiUserController extends Controller
            $myUser = User::all()->where('username','=',$user)->first();
 
 
-            return response()->json(['user' =>$myUser]);
+            return response()->json(['user' =>$myUser],200);
     }
     public function changepw(String $user)
     {

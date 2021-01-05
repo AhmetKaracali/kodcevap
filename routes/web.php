@@ -11,7 +11,7 @@
 |
 */
 
-
+Route::get('/clearCache','KodcevapController@clearRoute');
 Route::get('/', 'KodcevapController@index');
 Route::get('/soru/{soruid}', 'SoruController@index');
 Route::post('/soru/{soruid}', 'CevapController@store');
@@ -84,4 +84,3 @@ Route::get('iletisim', function (){
 
 Route::get('mesajgonder', 'telegramController@sendMessage');
 
-Auth::routes();
