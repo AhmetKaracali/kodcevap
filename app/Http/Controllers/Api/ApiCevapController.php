@@ -17,51 +17,54 @@ class ApiCevapController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
+            $cevap = new cevap();
 
-        $cevap = new cevap();
+            $cevap->owner = $request['author'];
+            $cevap->questionID = $request['qid'];
+            $cevap->body = $request['mytextarea'];
+            $cevap->created_at = date_create();
+            $cevap->parent = $request['comment_parent'];
+            $cevap->score = 0;
+            $cevap->isSolution = 0;
 
-        $cevap->owner = $request['author'];
-        $cevap->questionID = $request['qid'];
-        $cevap->body = $request['mytextarea'];
-        $cevap->created_at = date_create();
-        $cevap->parent = $request['comment_parent'];
-        $cevap->score = 0;
-        $cevap->isSolution = 0;
+            $cevap->save();
 
-        $cevap->save();
+            $user = User::all()->where('id', '=', $request['author'])->first();
+            $soru = Soru::all()->where('id', '=', $cevap->questionID)->first();
 
-        $user = User::all()->where('id','=',$request['author'])->first();
-        $soru = Soru::all()->where('id','=',$cevap->questionID)->first();
+            $user->points += 5;
+            $user->save();
 
-        $user->points += 5;
-        $user->save();
+            $aktivite = new userActivity();
+            $aktivite->activityType = 6;
+            $aktivite->user = $user->id;
+            $aktivite->url = "/soru/" . $soru->slug;
+            $aktivite->date = date_create();
+            $aktivite->save();
 
-        $aktivite = new userActivity();
-        $aktivite->activityType = 6;
-        $aktivite->user = $user->id;
-        $aktivite->url = "/soru/".$soru->slug;
-        $aktivite->date = date_create();
-        $aktivite->save();
+            $puan = new userPoint();
+            $puan->pointType = 2;
+            $puan->user = $user->id;
+            $puan->url = "/soru/" . $soru->slug;
+            $puan->pointValue = 5;
+            $puan->date = date_create();
+            $puan->save();
 
-        $puan = new userPoint();
-        $puan->pointType = 2;
-        $puan->user = $user->id;
-        $puan->url = "/soru/" .$soru->slug;
-        $puan->pointValue = 5;
-        $puan->date = date_create();
-        $puan->save();
+            return response()->json('Success', 200);
 
-        return response()->json('Success',200);
-
-
+        }
     }
 
     public function cozumisaret(Request $request)
     {
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
         $cevap = $request->commentID;
 
         $cevap = cevap::all()->where('id','=',$cevap)->first();
@@ -70,9 +73,9 @@ class ApiCevapController extends Controller
 
         $soru = Soru::all()->where('id','=',$cevap->questionID)->first();
 
-        if (Auth::guest())
+        if ($key = NULL)
         {
-
+            return response()->json('API KEY HATASI',404);
         }
         else
         {
@@ -96,68 +99,67 @@ class ApiCevapController extends Controller
             return response()->json(['success' =>'Çözüm işaretlendi.'],200);
         }
     }
+    }
 
     public function voted(Request $request)
     {
-        $cevap = $request->commentid;
-        $user = User::all()->where('username','=',$request->voter)->first();
-        $cevap = cevap::all()->where('id','=',$cevap)->first();
-        $cevapOwner = User::all()->where('id','=',$cevap->owner)->first();
-        $soru = Soru::all()->where('id','=',$cevap->questionID)->first();
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
+            $cevap = $request->commentid;
+            $user = User::all()->where('username', '=', $request->voter)->first();
+            $cevap = cevap::all()->where('id', '=', $cevap)->first();
+            $cevapOwner = User::all()->where('id', '=', $cevap->owner)->first();
+            $soru = Soru::all()->where('id', '=', $cevap->questionID)->first();
 
-        if (Auth::guest())
-        {
-            return response()->json('Önce giriş yapmalısınız.',404);
-        }
-        else
-        {
+            if ($key == NULL) {
+                return response()->json('API KEY HATASI.', 404);
+            } else {
 
-            if($request->voteType ==1)
-            {
-                $cevap->score += 1;
+                if ($request->voteType == 1) {
+                    $cevap->score += 1;
 
-                $aktivite = new userActivity();
-                $aktivite->activityType = 3;
-                $aktivite->user = $user->id;
-                $aktivite->url = "/soru/". $soru->slug."/#comment-".$cevap->id;
-                $aktivite->date = date_create();
-                $aktivite->save();
+                    $aktivite = new userActivity();
+                    $aktivite->activityType = 3;
+                    $aktivite->user = $user->id;
+                    $aktivite->url = "/soru/" . $soru->slug . "/#comment-" . $cevap->id;
+                    $aktivite->date = date_create();
+                    $aktivite->save();
 
-                $puan = new userPoint();
-                $puan->pointType = 5;
-                $puan->user = $cevap->owner;
-                $puan->url = "/soru/" .$soru->slug."/#comment-".$cevap->id;
-                $puan->pointValue = 1;
-                $puan->date = date_create();
+                    $puan = new userPoint();
+                    $puan->pointType = 5;
+                    $puan->user = $cevap->owner;
+                    $puan->url = "/soru/" . $soru->slug . "/#comment-" . $cevap->id;
+                    $puan->pointValue = 1;
+                    $puan->date = date_create();
 
-                $cevapOwner->points +=1;
-                $cevapOwner->save();
-                $puan->save();
+                    $cevapOwner->points += 1;
+                    $cevapOwner->save();
+                    $puan->save();
+                } else {
+                    $cevap->score -= 1;
+                    $aktivite = new userActivity();
+                    $aktivite->activityType = 4;
+                    $aktivite->user = $user->id;
+                    $aktivite->url = "/soru/" . $soru->slug . "/#comment-" . $cevap->id;
+                    $aktivite->date = date_create();
+                    $aktivite->save();
+
+                    $puan = new userPoint();
+                    $puan->pointType = 6;
+                    $puan->user = $cevap->owner;
+                    $puan->url = "/soru/" . $soru->slug . "/#comment-" . $cevap->id;
+                    $puan->pointValue = -1;
+                    $puan->date = date_create();
+
+                    $cevapOwner->points -= 1;
+                    $cevapOwner->save();
+                    $puan->save();
+                }
+
+                $cevap->save();
+                return response()->json(['success' => 'Oy verildi.'], 200);
+
             }
-            else{
-                $cevap->score -= 1;
-                $aktivite = new userActivity();
-                $aktivite->activityType = 4;
-                $aktivite->user = $user->id;
-                $aktivite->url = "/soru/".$soru->slug."/#comment-".$cevap->id;
-                $aktivite->date = date_create();
-                $aktivite->save();
-
-                $puan = new userPoint();
-                $puan->pointType = 6;
-                $puan->user = $cevap->owner;
-                $puan->url = "/soru/" .$soru->slug."/#comment-".$cevap->id;
-                $puan->pointValue = -1;
-                $puan->date = date_create();
-
-                $cevapOwner->points -=1;
-                $cevapOwner->save();
-                $puan->save();
-            }
-
-            $cevap->save();
-            return response()->json(['success' =>'Oy verildi.'],200);
-
         }
     }
 

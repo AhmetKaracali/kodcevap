@@ -14,7 +14,7 @@ class ApiToplulukController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -28,6 +28,8 @@ class ApiToplulukController extends Controller
 
     public function follow(Request $request)
     {
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
         $takipeden = User::all()->where('username','=',$request->takipeden)->first();
         $topluluk = Topluluk::all()->where('id','=',$request->topluluk)->first();
         $followers = new toplulukFollowers();
@@ -38,18 +40,22 @@ class ApiToplulukController extends Controller
         $followers->save();
         return response()->json(['success' =>'Topluluk takip edildi.'],200);
     }
+    }
 
     public function unfollow(Request $request)
     {
-        $takipeden = User::all()->where('username','=',$request->takipeden)->first();
-        $topluluk = Topluluk::all()->where('id','=',$request->topluluk)->first();
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
+            $takipeden = User::all()->where('username', '=', $request->takipeden)->first();
+            $topluluk = Topluluk::all()->where('id', '=', $request->topluluk)->first();
 
-        $followers = toplulukFollowers::all()->where('toplulukID','=',$topluluk->id)->where('userID','=',$takipeden->id)
-            ->first();
+            $followers = toplulukFollowers::all()->where('toplulukID', '=', $topluluk->id)->where('userID', '=', $takipeden->id)
+                ->first();
 
-        $followers->delete();
+            $followers->delete();
 
-        return response()->json(['success' =>'Topluluk takipten çıkıldı.'],200);
+            return response()->json(['success' => 'Topluluk takipten çıkıldı.'], 200);
+        }
     }
 
      /**
@@ -60,6 +66,7 @@ class ApiToplulukController extends Controller
      */
     public function show(Topluluk $topluluk)
     {
+
         $toplulukSingle = Topluluk::with('user')->where('id','=',$topluluk->id)
             ->with('soruTopluluk')->where('id','=',$topluluk->id)->get();
 

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\toplulukFollowers;
 use App\userActivity;
+use App\userFollowers;
 use App\userPoint;
+use http\Env\Response;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +18,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use PhpParser\Node\Expr\Array_;
 
 class ApiUserController extends Controller
 {
@@ -27,17 +31,26 @@ class ApiUserController extends Controller
     public function registerWithApi(Request $request)
     {
 
-           User::create([
-            'name' => $request->get('isim'),
-            'username' => $request->get('username'),
-            'email' => $request->get('email'),
-            'password' => Hash::make($request->get('pass1')),
-            'birthdate' => $request->get('birthdate'),
-            'regDate' => date(now()),
-            'about' => '',
-            'email_verified_at' => null,
-        ]);
-        return response()->json('Kayit Basarili.',200);
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key){
+
+            User::create([
+                'name' => $request->get('isim'),
+                'username' => $request->get('username'),
+                'email' => $request->get('email'),
+                'password' => Hash::make($request->get('pass1')),
+                'birthdate' => $request->get('birthdate'),
+                'regDate' => date(now()),
+                'about' => '',
+                'email_verified_at' => null,
+            ]);
+            return response()->json('Kayit Basarili.', 200);
+
+
+        }
+        else {
+            return response()->json('API KEY IS WRONG',404);
+        }
     }
 
 
@@ -46,14 +59,21 @@ class ApiUserController extends Controller
         $keys = $request->only('username','password');
         $user = User::all()->where('username', '=',$keys['username'])->first();
 
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key){
+
         if(!Auth::check()) {
             if (Auth::attempt($keys)) {
                 session([ 'user' =>  $user]);
                 return response()->json('Success',200);
 
             } else {
-                return response()->json('Error',404);
+                return response()->json('Error: Wrong username or password.',404);
             }
+        }
+        }
+        else{
+            return response()->json('Error: API CODE IS WRONG.',404);
         }
     }
 
@@ -65,7 +85,17 @@ class ApiUserController extends Controller
 
         return response()->json(['data' =>$profileData],200);
     }
+    public function getUserByID(Request $request)
+    {
+        $userData = User::all()->where('id','=',$request->get('userID'));
+        return response()->json(['userData' => $userData],200);
+    }
+    public function getPopularUsers()
+    {
+        $popularUsers = User::all()->sortByDesc('points');
 
+        return response()->json(['popularUsers' => $popularUsers],200 );
+    }
     public function showQuestions(User $user)
     {
         $profileData = User::with('sorular','followers','follows')->where('id','=',$user->id)
@@ -97,16 +127,34 @@ class ApiUserController extends Controller
     {
         $profileData = User::with('sorular','soruCevaplar','topluluks','followers','follows')->where('id','=',$user->id)
             ->firstOrFail();
+        $followers = $profileData->followers;
 
-        return response()->json(['data' =>$profileData],200);
+        $userDatas = collect();
+        foreach ($followers as &$user) {
+            $singleUser = User::with('followers','follows')->where('id','=',$user->id)
+                ->firstOrFail();
+            $userDatas->add($singleUser);
+        }
+        //dd($userDatas->toArray());
+        return response()->json(['data' =>$userDatas->toArray()],200);
     }
 
     public function showTakip(User $user)
     {
-        $profileData = User::with('sorular','soruCevaplar','topluluks','followers','follows')->where('id','=',$user->id)
+        $profileData = User::with('followers','follows')->where('id','=',$user->id)
             ->firstOrFail();
 
-        return response()->json(['data' =>$profileData],200);
+        $follows = $profileData->follows;
+
+        $userDatas = collect();
+        foreach ($follows as &$user) {
+            $singleUser = User::with('followers','follows')->where('id','=',$user->id)
+                ->firstOrFail();
+            $userDatas->add($singleUser);
+        }
+        //dd($userDatas->toArray());
+        return response()->json(['data' =>$userDatas->toArray()],200);
+
     }
 
     public function showActivity(User $user)
@@ -130,24 +178,21 @@ class ApiUserController extends Controller
         }
     }
 
-    public function showPoints(User $user)
+    public function showNotifications(Request $request)
     {
-        if(Auth::guest())
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if($request->get('apiKey') != $key)
         {
-            return redirect('/');
-        }
-        else if(Auth::user()->username == $user->username)
-        {
-            $points = userPoint::all()->where('user','=',$user->id)->sortByDesc('id');
-
-            $profileData = User::with('sorular','followers','follows')->where('id','=',$user->id)
-                ->firstOrFail();
-
-            return response()->json(['points' => $points, 'data' =>$profileData],200);
+            return response()->json("API KEY HATALI.",404);
         }
         else
         {
-            return redirect('/');
+
+            $user = User::all()->where('username',"=",$request->get('username'))->first();
+            $points = userPoint::all()->where('user','=',$user->id)->sortByDesc('id');
+
+
+            return response()->json(['points' => $points],200);
         }
     }
 
@@ -167,7 +212,7 @@ class ApiUserController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  \App\User $user
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function edit(String $user)
     {
@@ -185,28 +230,20 @@ class ApiUserController extends Controller
     }
     public function updatepw(Request $request, User $user)
     {
-        $request->validate(
-            [
-                'oldpassword' => ['required', 'string', 'min:8'],
-                'newpassword' => ['required', 'confirmed', 'string', 'min:8'],
-            ]
-        );
 
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
+            if (Hash::check($request->oldpassword, $user->password)) {
+                $user->password = Hash::make($request->newpassword);
+                $user->save();
 
-        if(Hash::check($request->oldpassword,$user->password))
-        {
-            $user->password = Hash::make($request->newpassword);
-            $user->save();
+                return response()->json(['message' => 'Şifre Başarıyla değiştirildi.'], 200);
 
-            return response()->json(['message' =>'Şifre Başarıyla değiştirildi.'],200);
+            } else {
+                return response()->json(['message' => 'Şifre değiştirme başarısız! Lütfen mevcut şifrenizi doğru girin.'], 404);
 
+            }
         }
-        else
-        {
-            return response()->json(['message' =>'Şifre değiştirme başarısız! Lütfen mevcut şifrenizi doğru girin.'],404);
-
-        }
-
     }
 
     /**
@@ -218,20 +255,21 @@ class ApiUserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key){
 
-        if($request->hasFile('userpp')){
+            if ($request->hasFile('userpp')) {
             $image = $request->file('userpp');
             $filename = $user->username . '.' . $image->getClientOriginalExtension();
-            Image::make($image)->resize(300, 300)->save( 'fileserver/uploads/userpp/' . $filename );
+            Image::make($image)->resize(300, 300)->save('fileserver/uploads/userpp/' . $filename);
             $userpp = '/fileserver/uploads/userpp/' . $filename;
             $user->ppURL = $userpp;
         };
 
-        if ($request->hasFile('userCover'))
-        {
+        if ($request->hasFile('userCover')) {
             $image = $request->file('userCover');
             $filename = $user->username . '.' . $image->getClientOriginalExtension();
-            Image::make($image)->save('fileserver/uploads/userCover/' . $filename );
+            Image::make($image)->save('fileserver/uploads/userCover/' . $filename);
             //Image::make($image)->resize(300, 300)->save('fileserver/uploads/userCover/' . $filename );
             $userCover = '/fileserver/uploads/userCover/' . $filename;
             $user->userCover = $userCover;
@@ -251,7 +289,8 @@ class ApiUserController extends Controller
         $user->save();
 
 
-        return response()->json(['message' =>'Profil güncelleme başarılı.'],200);
+        return response()->json(['message' => 'Profil güncelleme başarılı.'], 200);
+        }
     }
 
     /**
@@ -263,5 +302,68 @@ class ApiUserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function questionVoteHelper(Request $request)
+    {
+        $question = $request->get('question');
+        $user = $request->get('user');
+        $activity = userActivity::all()->where('user', '=', $user)->where('url', '=', $question)
+            ->where('activityType', '<=', 2)->first();
+
+        if ($activity == null) {
+            return response()->json(['activity' => 0],200);
+        } else {
+            $result = $activity->activityType;
+
+            if ($result == 1) {
+                return response()->json(['activity' => 1],200);
+            } else if ($result == 2) {
+                return response()->json(['activity' => 2], 200);
+            }
+        }
+    }
+
+    public function answerVoteHelper(Request $request)
+    {
+        $answer = $request->get('answer');
+        $user = $request->get('user');
+        $activity = userActivity::all()->where('user','=',$user)->where('url','=',$answer)
+            ->where('activityType','<',5)->first();
+
+        if ($activity == null)
+        {
+            return response()->json(['activity' => 0],200);
+        }
+        else{
+            $result = $activity->activityType;
+
+            if ($result == 3)
+            {
+                return response()->json(['activity' => 3]);
+            }
+            else if ( $result == 4)
+                return response()->json(['activity' => 4]);
+        }
+    }
+
+    public function userFollowHelper(Request $request)
+    {
+        $key1 = $request->get('user');
+        $key2 = $request->get('isFollowing');
+
+        $return = userFollowers::all()->where('followed','=',$key2)
+            ->where('follower','=',$key1)->isNotEmpty();
+
+        return response()->json(['following' => $return]);
+    }
+
+    public function toplulukFollowHelper(Request $request)
+    {
+        $user = $request->get('user');
+        $community = $request->get('community');
+        $result = toplulukFollowers::all()->where('userID','=',$user)
+            ->where('toplulukID','=',$community)->isNotEmpty();
+        return response()->json(['following' => $result]);
     }
 }

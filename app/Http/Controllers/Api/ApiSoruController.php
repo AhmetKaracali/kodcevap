@@ -60,18 +60,16 @@ class apiSoruController
 
     public function store(Request $request)
     {
-
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key){
         $user = $request->get('username');
-
+        $user = User::all()->where('username', '=', $user)->first();
         $soru = new Soru();
         $soru->title = $request->get('soruTitle');
-        $soru->slug = Str::slug($soru->title,'-');
-        if ($request->get('topluluk') ==0)
-        {
+        $soru->slug = Str::slug($soru->title, '-');
+        if ($request->get('topluluk') == 0) {
             $soru->toplulukID = null;
-        }
-        else
-        {
+        } else {
             $soru->toplulukID = $request->get('topluluk');
         }
 
@@ -82,29 +80,25 @@ class apiSoruController
         $soru->save();
 
 
-        $etikets = explode(',',$request->get('etiketler'));
+        $etikets = explode(',', $request->get('etiketler'));
 
-        foreach ($etikets as $etiket)
-        {
-            $count = Etiket::all()->where('name','=',$etiket)->count();
-            if ($count <1)
-            {
+        foreach ($etikets as $etiket) {
+            $count = Etiket::all()->where('name', '=', $etiket)->count();
+            if ($count < 1) {
                 $newEtiket = new Etiket();
                 $newEtiket->name = $etiket;
-                $newEtiket->slug = Str::slug($newEtiket->name,'-');
+                $newEtiket->slug = Str::slug($newEtiket->name, '-');
                 $newEtiket->color = '#88742c';
                 $newEtiket->save();
 
                 $soruEtiket = new soruEtiket();
                 $soruEtiket->soruID = Soru::getSoru($soru)->id;
-                $soruEtiket->tagID = Etiket::all()->where('slug','=',$newEtiket->slug)->first()->id;
+                $soruEtiket->tagID = Etiket::all()->where('slug', '=', $newEtiket->slug)->first()->id;
                 $soruEtiket->save();
-            }
-            else
-            {
+            } else {
                 $soruEtiket = new soruEtiket();
                 $soruEtiket->soruID = Soru::getSoru($soru)->id;
-                $soruEtiket->tagID = Etiket::all()->where('slug','=',$etiket)->first()->id;
+                $soruEtiket->tagID = Etiket::all()->where('slug', '=', $etiket)->first()->id;
                 $soruEtiket->save();
             }
         }
@@ -112,79 +106,79 @@ class apiSoruController
         $aktivite = new userActivity();
         $aktivite->activityType = 5;
         $aktivite->user = $user->id;
-        $aktivite->url = "/soru/" .$soru->slug;
+        $aktivite->url = "/soru/" . $soru->slug;
         $aktivite->date = date_create();
         $aktivite->save();
 
         $puan = new userPoint();
         $puan->pointType = 1;
         $puan->user = $user->id;
-        $puan->url = "/soru/" .$soru->slug;
+        $puan->url = "/soru/" . $soru->slug;
         $puan->pointValue = 2;
         $puan->date = date_create();
         $puan->save();
 
-        return response()->json('Sorunuz paylaşıldı.',201);
-
+        return response()->json('Sorunuz paylaşıldı.', 201);
+        }
     }
 
     public function voteQuestion(Request $request)
     {
-        $soru = $request->postid;
+        $key = "a5877455-b8ac-477f-9b7f-ccb9a979f44e";
+        if ($request->get('apiKey') == $key) {
+            $soru = $request->postid;
 
-        $soru = Soru::all()->where('id','=',$soru)->first();
-        $user = User::all()->where('username','=',$request->voter)->first();
-        $soruOwner = User::all()->where('id','=',$soru->owner)->first();
+            $soru = Soru::all()->where('id', '=', $soru)->first();
+            $user = User::all()->where('username', '=', $request->voter)->first();
+            $soruOwner = User::all()->where('id', '=', $soru->owner)->first();
 
-        if($request->voteType ==1)
-        {
-            $soru->vote += 1;
+            if ($request->voteType == 1) {
+                $soru->vote += 1;
 
-            $aktivite = new userActivity();
-            $aktivite->activityType = 1;
-            $aktivite->user = $user->id;
-            $aktivite->url = "/soru/". $soru->slug;
-            $aktivite->date = date_create();
-            $aktivite->save();
+                $aktivite = new userActivity();
+                $aktivite->activityType = 1;
+                $aktivite->user = $user->id;
+                $aktivite->url = "/soru/" . $soru->slug;
+                $aktivite->date = date_create();
+                $aktivite->save();
 
-            $puan = new userPoint();
-            $puan->pointType = 3;
-            $puan->user = $soru->owner;
-            $puan->url = "/soru/" .$soru->slug;
-            $puan->pointValue = 1;
-            $puan->date = date_create();
+                $puan = new userPoint();
+                $puan->pointType = 3;
+                $puan->user = $soru->owner;
+                $puan->url = "/soru/" . $soru->slug;
+                $puan->pointValue = 1;
+                $puan->date = date_create();
 
-            $soruOwner->points +=1;
-            $soruOwner->save();
-            $puan->save();
+                $soruOwner->points += 1;
+                $soruOwner->save();
+                $puan->save();
 
 
+            } else {
+                $soru->vote -= 1;
+
+                $aktivite = new userActivity();
+                $aktivite->activityType = 2;
+                $aktivite->user = $user->id;
+                $aktivite->url = "/soru/" . $soru->slug;
+                $aktivite->date = date_create();
+                $aktivite->save();
+
+                $puan = new userPoint();
+                $puan->pointType = 4;
+                $puan->user = $soru->owner;
+                $puan->url = "/soru/" . $soru->slug;
+                $puan->pointValue = -1;
+                $puan->date = date_create();
+
+                $soruOwner->points -= 1;
+                $soruOwner->save();
+                $puan->save();
+
+            }
+
+            $soru->save();
+            return response()->json(['success' => 'Oy verildi.']);
         }
-        else{
-            $soru->vote -= 1;
-
-            $aktivite = new userActivity();
-            $aktivite->activityType = 2;
-            $aktivite->user = $user->id;
-            $aktivite->url = "/soru/".$soru->slug;
-            $aktivite->date = date_create();
-            $aktivite->save();
-
-            $puan = new userPoint();
-            $puan->pointType = 4;
-            $puan->user = $soru->owner;
-            $puan->url = "/soru/" .$soru->slug;
-            $puan->pointValue = -1;
-            $puan->date = date_create();
-
-            $soruOwner->points -=1;
-            $soruOwner->save();
-            $puan->save();
-
-        }
-
-        $soru->save();
-        return response()->json(['success' =>'Oy verildi.']);
-
     }
 }

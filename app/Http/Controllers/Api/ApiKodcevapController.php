@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Kodcevap;
 use App\Soru;
+use App\User;
+use App\userFollowers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ApiKodcevapController extends Controller
 {
@@ -22,7 +25,20 @@ class ApiKodcevapController extends Controller
                 $sorus = Soru::with('soran')->orderByDesc('vote')->paginate('20');
             } elseif (request()->get('show') == "most-views") {
                 $sorus = Soru::with('soran')->orderByDesc('views')->paginate('20');
-            } else {
+            } elseif (request()->get('show') == "timeline") {
+                $user = User::with('follows')->where('username','=',request()->get('user'))->first();
+                //$userFollows = userFollowers::all()->where('follower','=',$user->id);
+                $collection = new Collection();
+                foreach($user->follows as $uuu)
+                {
+                    //$userFollowing = User::all()->where('id','=',$uuu->followed);
+                    $sorulari = Soru::with('soran')->where('owner','=',$uuu->followed)->orderByDesc('crdate')->get();
+                    $collection = $collection->merge($sorulari);
+                }
+                $collection->sortByDesc('crdate');
+
+                return response()->json(['site' => Kodcevap::findOrFail(1), 'sorus' => $collection],200);
+            }else {
                 $sorus = Soru::with('soran')->orderByDesc('crdate')->paginate('20');
             }
 
