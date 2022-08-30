@@ -1,3 +1,4 @@
 # kodcevap
 
-Laravel MVC backend for iOS Application
+KodCevap is a stackoverflow clone in Turkish language.
+
